@@ -1,0 +1,36 @@
+---
+- name: Bash
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Ensure .bashrc.d/ exists.
+      ansible.builtin.file:
+        name: "{{ ansible_user_dir }}/.bashrc.d/"
+        state: directory
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0755'
+    - name: Ensure .rc files exist.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/{{ item }}"
+        dest: "{{ ansible_user_dir }}/.bashrc.d/{{ item }}" 
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0644'
+      with_items:
+        - 00-env.rc
+        - 10-custom.rc
+    - name: Ensure .vimrc exist.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/.vimrc"
+        dest: "{{ ansible_user_dir }}/.vimrc"
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0644'
+    - name: Ensure .ansible.cfg exist.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/.ansible.cfg"
+        dest: "{{ ansible_user_dir }}/.ansible.cfg"
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0644'

@@ -1,0 +1,33 @@
+# vim: filetype=sh
+
+export HISTSIZE=100000 # unlimited
+export HISTCONTROL="ignorespace:ignoredups"
+export EDITOR="/usr/bin/vim"
+export LESS="-M -I -R"
+
+export VAGRANT_DEFAULT_PROVIDER='libvirt'
+export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+
+# https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-pagination.html#cli-usage-pagination-awspager
+export AWS_PAGER=""
+export AWS_VAULT_BACKEND=kwallet
+export AWS_VAULT_PROMPT=ykman
+export YKMAN_OATH_CREDENTIAL_NAME=aws
+
+# https://unix.stackexchange.com/questions/124444/how-can-i-cleanly-add-to-path
+pupdate() {
+  if [ -z "$1" ]; then
+    printf 'pupdate error\n' >&2
+    return 1
+  fi
+  local input=${1%/} # remove trailing slash
+  case ":$PATH:" in
+    *":$input:"*) ;; # already in PATH
+    *) PATH="$PATH:$input" ;; # append
+  esac
+  export PATH
+}
+
+if [ -d /usr/local/go/bin ]; then
+  pupdate "/usr/local/go/bin"
+fi

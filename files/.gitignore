@@ -1,0 +1,6 @@
+# vim: filetype=.gitconfig
+
+**/.terraform/*
+**/.terraform.lock.hcl
+**/.env
+**/*.swp

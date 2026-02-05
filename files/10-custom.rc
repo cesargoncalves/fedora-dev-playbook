@@ -1,0 +1,71 @@
+# vim: filetype=sh
+
+# return if non-interactive shell
+[[ $- != *i* ]] && return
+
+alias l='ls -alF --color=auto'
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias crontab='crontab -i'
+alias check_http='/usr/lib64/nagios/plugins/check_http'
+alias tfgrep='grep -r --include=*.tf --include=*.tfvars --include=*.tfbackend --exclude-dir=.terraform'
+
+# aws_login completion
+if [ -f "$HOME/.aws/config" ]; then
+  aws_profiles=$(awk -F'[][]' '/^\[/{p=$2; sub(/^profile[[:space:]]+/,"",p); printf "%s ", p}' "${HOME}/.aws/config")
+  [ -n "${aws_profiles}" ] && complete -W "${aws_profiles}" aws_login
+fi
+
+# Terraform completion
+terraform_bin=$(command -v terraform 2>/dev/null || :)
+if [ -n "${terraform_bin}" ]; then
+  complete -C "${terraform_bin}" terraform
+fi
+
+# source git-prompt if present
+git_prompt="/usr/share/git-core/contrib/completion/git-prompt.sh"
+if [ -f "${git_prompt}" ]; then
+  . "${git_prompt}"
+fi
+
+# check availability of __git_ps1 once 
+_have_git_ps1=0
+if declare -F __git_ps1 >/dev/null 2>&1; then
+  _have_git_ps1=1
+fi
+
+# ANSI color codes
+none=$'\e[0m'
+gray=$'\e[90m'
+green=$'\e[92m'
+orange=$'\e[33m'
+
+# prompt behavior
+export PROMPT_DIRTRIM=4
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+export GIT_PS1_SHOWUPSTREAM=auto
+
+_update_prompt() {
+  # previous command exit code
+  local prompt_exit=$?
+
+  local prompt_git=""
+  local prompt_terraform=""
+
+  # git branch
+  if [ "${_have_git_ps1}" -eq 1 ]; then
+    prompt_git="$(__git_ps1 ' (%s)')"
+  fi
+
+  # Terraform workspace
+  if [ -d ".terraform" ] && [ -n "${terraform_bin}" ];then 
+    prompt_terraform=" $(terraform workspace show 2>/dev/null)"
+  fi
+
+  PS1="\\[${none}\\][\\[${gray}\\]\\u@\\h ${prompt_exit} \\[${green}\\]\\w\\[${orange}\\]${prompt_git}\\[${gray}\\]${prompt_terraform}\\[${none}\\]]\\$ "
+}
+
+# ensure the function runs before each prompt
+PROMPT_COMMAND=_update_prompt
